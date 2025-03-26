@@ -66,22 +66,24 @@ require('lazy').setup({
       { 'tpope/vim-dadbod', lazy = true },
       { 'kristijanhusak/vim-dadbod-completion', ft = { 'sql', 'mysql', 'plsql', lazy = true },
       },
-      cmd = {
-        'DBUI',
-        'DBUIToggle',
-        'DBUIAddConnection',
-        'DBUIFindBuffer',
-      },
-      init = function()
-        -- Your DBUI configuration
-        vim.g.db_ui_use_nerd_fonts = 1
-        vim.g.db_ui_execute_on_save = 0
-      end,
-    }
+    },
+    cmd = {
+      'DBUI',
+      'DBUIToggle',
+      'DBUIAddConnection',
+      'DBUIFindBuffer',
+    },
+    init = function()
+      -- Your DBUI configuration
+      vim.g.db_ui_use_nerd_fonts = 1
+      vim.g.db_ui_execute_on_save = 0
+    end,
   },
 
   -- Detect tabstop and shiftwidth automatically
   'tpope/vim-sleuth',
+  -- Add keybinds to convert snake_case to PascaleCase, etc. (Coercion)
+  'tpope/vim-abolish',
 
   -- NOTE: This is where your plugins related to LSP can be installed.
   --  The configuration is done below. Search for lspconfig to find it below.
@@ -263,7 +265,7 @@ require('lazy').setup({
   {
     'stevearc/oil.nvim',
     opts = {
-      default_file_explorer = false,
+      default_file_explorer = true,
     },
   },
   {
@@ -771,11 +773,35 @@ vim.api.nvim_create_autocmd("FileType", {
   callback = function()
     vim.wo.foldenable = false
     vim.cmd "set modifiable"
-    vim.cmd "g/Using a password on the command line interface can be insecure/d"
+    vim.cmd([[g/Using a password on the command line interface can be insecure/execute 'normal! "_dd']])
   end,
 })
 
 require 'nvim-treesitter.install'.compilers = { "clang", "gcc" }
+
+vim.api.nvim_create_autocmd('TermOpen', {
+  group = vim.api.nvim_create_augroup('custom-term-open', { clear = true }),
+  callback = function()
+    vim.opt.number = false
+    vim.opt.relativenumber = false
+  end,
+})
+
+local openTerminal = function()
+  vim.cmd.vnew()
+  vim.cmd.term()
+  vim.cmd.wincmd("J")
+  vim.api.nvim_win_set_height(0, 15)
+  vim.cmd("startinsert")
+end
+
+vim.keymap.set("n", "<leader>st", openTerminal, { desc = "Open [T]erminal" })
+vim.keymap.set("n", "<leader>sT", function()
+  openTerminal()
+  vim.api.nvim_chan_send(vim.b.terminal_job_id, "php artisan tinker\r\n")
+end, { desc = "Open [T]inker" })
+vim.keymap.set("n", "<leader>sp", "vip:sort<CR>", { desc = "Sort [P]aragraph" })
+vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>")
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
