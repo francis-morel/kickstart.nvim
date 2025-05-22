@@ -92,12 +92,13 @@ require('lazy').setup({
     'neovim/nvim-lspconfig',
     dependencies = {
       -- Automatically install LSPs to stdpath for neovim
-      { 'williamboman/mason.nvim', config = true },
-      'williamboman/mason-lspconfig.nvim',
+      { 'mason-org/mason.nvim', opts = {} },
+      'mason-org/mason-lspconfig.nvim',
+      'WhoIsSethDaniel/mason-tool-installer.nvim',
 
       -- Useful status updates for LSP
       -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
-      { 'j-hui/fidget.nvim',       opts = {} },
+      { 'j-hui/fidget.nvim',    opts = {} },
 
       -- Additional lua configuration, makes nvim stuff amazing!
       'folke/neodev.nvim',
@@ -143,6 +144,31 @@ require('lazy').setup({
       current_line_blame_opts = {
         delay = 1000,
       },
+      on_attach = function(bufnr)
+        local gitsigns = require('gitsigns')
+
+        local function map(mode, l, r, opts)
+          opts = opts or {}
+          opts.buffer = bufnr
+          vim.keymap.set(mode, l, r, opts)
+        end
+
+        map('n', ']c', function()
+          if vim.wo.diff then
+            vim.cmd.normal({ ']c', bang = true })
+          else
+            gitsigns.nav_hunk('next')
+          end
+        end, { desc = 'Next hunk' })
+
+        map('n', '[c', function()
+          if vim.wo.diff then
+            vim.cmd.normal({ '[c', bang = true })
+          else
+            gitsigns.nav_hunk('prev')
+          end
+        end, { desc = 'Prev hunk' })
+      end
     },
   },
   -- Highlight references using LSP, regex
@@ -602,8 +628,6 @@ local servers = {
   },
 }
 
--- Setup neovim lua configuration
-require('neodev').setup()
 
 -- nvim-cmp supports additional completion capabilities, so broadcast that to servers
 local capabilities = vim.lsp.protocol.make_client_capabilities()
@@ -625,6 +649,9 @@ mason_lspconfig.setup_handlers {
     }
   end,
 }
+
+-- Setup neovim lua configuration
+require('neodev').setup()
 
 -- nvim-cmp setup
 local cmp = require 'cmp'
