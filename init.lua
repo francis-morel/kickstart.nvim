@@ -410,18 +410,29 @@ require('lazy').setup({
         -- You can put your default mappings / updates / etc. in here
         --  All the info you're looking for is in `:help telescope.setup()`
         --
-        -- defaults = {
-        --   mappings = {
-        --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
-        --   },
-        -- },
-        -- pickers = {}
+        defaults = {
+          mappings = {
+            i = {
+              ['<c-c>'] = 'delete_buffer',
+            },
+            n = {
+              ['<c-c>'] = 'delete_buffer',
+            },
+          },
+          pickers = {
+            find_files = {
+              theme = 'ivy',
+            },
+            live_grep = {
+              theme = 'ivy',
+            },
+          },
+        },
         extensions = {
           ['ui-select'] = {
             require('telescope.themes').get_dropdown(),
           },
         },
-        defaults = require('telescope.themes').get_ivy(),
       }
 
       -- Enable Telescope extensions if they are installed
@@ -862,9 +873,15 @@ require('lazy').setup({
       },
 
       sources = {
-        default = { 'lsp', 'path', 'snippets', 'lazydev' },
+        default = { 'lsp', 'path', 'snippets', 'buffer' },
+        per_filetype = {
+          lua = { inherit_defaults = true, 'lazydev' },
+          sql = { inherit_defaults = true, 'dadbod' },
+          mysql = { inherit_defaults = true, 'dadbod' },
+        },
         providers = {
           lazydev = { module = 'lazydev.integrations.blink', score_offset = 100 },
+          dadbod = { module = 'vim_dadbod_completion.blink', fuzzy = true },
         },
       },
 
@@ -881,6 +898,12 @@ require('lazy').setup({
 
       -- Shows a signature help window while you type arguments for a function
       signature = { enabled = true },
+      cmdline = {
+        keymap = { preset = 'inherit' },
+        completion = {
+          menu = { auto_show = true },
+        },
+      },
     },
   },
 
@@ -1021,6 +1044,7 @@ require('lazy').setup({
 })
 
 require('nvim-treesitter.install').compilers = { 'clang', 'gcc' }
+require 'custom.keymaps' -- Load custom keymaps from `lua/custom/keymaps.lua`
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
