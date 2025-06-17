@@ -792,6 +792,10 @@ require('lazy').setup({
         --
         -- You can use 'stop_after_first' to run the first available formatter from the list
         -- javascript = { "prettierd", "prettier", stop_after_first = true },
+        javascript = { 'prettierd' },
+        typescript = { 'prettierd' },
+        css = { 'prettierd' },
+        html = { 'prettierd' },
       },
     },
   },
@@ -881,7 +885,7 @@ require('lazy').setup({
         },
         providers = {
           lazydev = { module = 'lazydev.integrations.blink', score_offset = 100 },
-          dadbod = { module = 'vim_dadbod_completion.blink', fuzzy = true },
+          dadbod = { module = 'vim_dadbod_completion.blink' },
         },
       },
 
