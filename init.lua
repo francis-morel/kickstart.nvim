@@ -248,7 +248,7 @@ rtp:prepend(lazypath)
 -- NOTE: Here is where you install your plugins.
 require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
-  'NMAC427/guess-indent.nvim', -- Detect tabstop and shiftwidth automatically
+  { 'NMAC427/guess-indent.nvim', opts = {} }, -- Detect tabstop and shiftwidth automatically
 
   -- NOTE: Plugins can also be added by using a table,
   -- with the first argument being the link and the following
@@ -755,7 +755,7 @@ require('lazy').setup({
     end,
   },
 
-  { -- Autoformat
+  {
     'stevearc/conform.nvim',
     event = { 'BufWritePre' },
     cmd = { 'ConformInfo' },
@@ -765,39 +765,59 @@ require('lazy').setup({
         function()
           require('conform').format { async = true, lsp_format = 'fallback' }
         end,
-        mode = '',
         desc = '[F]ormat buffer',
       },
     },
-    opts = {
-      notify_on_error = false,
-      format_on_save = function(bufnr)
-        -- Disable "format_on_save lsp_fallback" for languages that don't
-        -- have a well standardized coding style. You can add additional
-        -- languages here or re-enable it for the disabled ones.
-        local disable_filetypes = { c = true, cpp = true }
-        if disable_filetypes[vim.bo[bufnr].filetype] then
-          return nil
-        else
+    opts = function()
+      local disable_filetypes = { c = true, cpp = true }
+
+      require('conform').setup {
+        notify_on_error = false,
+        format_on_save = function(bufnr)
+          -- Respect global or buffer-local disable flags
+          if vim.g.disable_autoformat or vim.b[bufnr].disable_autoformat then
+            return
+          end
+
+          if disable_filetypes[vim.bo[bufnr].filetype] then
+            return nil
+          end
+
           return {
             timeout_ms = 500,
             lsp_format = 'fallback',
           }
+        end,
+        formatters_by_ft = {
+          lua = { 'stylua' },
+          javascript = { 'prettierd' },
+          javascriptreact = { 'prettierd' },
+          typescript = { 'prettierd' },
+          typescriptreact = { 'prettierd' },
+          css = { 'prettierd' },
+          html = { 'prettierd' },
+        },
+      }
+
+      -- Define user commands to toggle formatting
+      vim.api.nvim_create_user_command('FormatDisable', function(args)
+        if args.bang then
+          vim.b.disable_autoformat = true
+        else
+          vim.g.disable_autoformat = true
         end
-      end,
-      formatters_by_ft = {
-        lua = { 'stylua' },
-        -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
-        --
-        -- You can use 'stop_after_first' to run the first available formatter from the list
-        -- javascript = { "prettierd", "prettier", stop_after_first = true },
-        javascript = { 'prettierd' },
-        typescript = { 'prettierd' },
-        css = { 'prettierd' },
-        html = { 'prettierd' },
-      },
-    },
+      end, {
+        desc = 'Disable autoformat-on-save',
+        bang = true,
+      })
+
+      vim.api.nvim_create_user_command('FormatEnable', function()
+        vim.b.disable_autoformat = false
+        vim.g.disable_autoformat = false
+      end, {
+        desc = 'Re-enable autoformat-on-save',
+      })
+    end,
   },
 
   { -- Autocompletion
