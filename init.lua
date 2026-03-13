@@ -98,6 +98,9 @@ vim.g.have_nerd_font = true
 -- NOTE: You can change these options as you wish!
 --  For more options, you can see `:help option-list`
 
+-- Enable local config files (.nvim.lua in project root)
+vim.o.exrc = true
+
 -- Make line numbers default
 vim.o.number = true
 -- You can also add relative line numbers, to help with jumping.
@@ -771,6 +774,27 @@ require('lazy').setup({
     opts = function()
       local disable_filetypes = { c = true, cpp = true }
 
+      -- Helper function to get project-specific formatter
+      local function get_formatters(filetype)
+        -- Check for project-specific override
+        if vim.g.conform_formatters and vim.g.conform_formatters[filetype] then
+          return vim.g.conform_formatters[filetype]
+        end
+
+        -- Default formatters by filetype
+        local defaults = {
+          lua = { 'stylua' },
+          javascript = { 'prettierd' },
+          javascriptreact = { 'prettierd' },
+          typescript = { 'prettierd' },
+          typescriptreact = { 'prettierd' },
+          css = { 'prettierd' },
+          html = { 'prettierd' },
+        }
+
+        return defaults[filetype]
+      end
+
       require('conform').setup {
         notify_on_error = false,
         format_on_save = function(bufnr)
@@ -789,13 +813,27 @@ require('lazy').setup({
           }
         end,
         formatters_by_ft = {
-          lua = { 'stylua' },
-          javascript = { 'prettierd' },
-          javascriptreact = { 'prettierd' },
-          typescript = { 'prettierd' },
-          typescriptreact = { 'prettierd' },
-          css = { 'prettierd' },
-          html = { 'prettierd' },
+          lua = function()
+            return get_formatters 'lua'
+          end,
+          javascript = function()
+            return get_formatters 'javascript'
+          end,
+          javascriptreact = function()
+            return get_formatters 'javascriptreact'
+          end,
+          typescript = function()
+            return get_formatters 'typescript'
+          end,
+          typescriptreact = function()
+            return get_formatters 'typescriptreact'
+          end,
+          css = function()
+            return get_formatters 'css'
+          end,
+          html = function()
+            return get_formatters 'html'
+          end,
         },
       }
 

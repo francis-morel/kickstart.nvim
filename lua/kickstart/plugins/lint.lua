@@ -5,10 +5,28 @@ return {
     event = { 'BufReadPre', 'BufNewFile' },
     config = function()
       local lint = require 'lint'
+
+      -- Helper function to get project-specific linters
+      local function get_linters(filetype)
+        -- Check for project-specific override
+        if vim.g.nvim_lint_linters and vim.g.nvim_lint_linters[filetype] then
+          return vim.g.nvim_lint_linters[filetype]
+        end
+
+        -- Default linters by filetype
+        local defaults = {
+          markdown = { 'markdownlint' },
+          javascript = { 'eslint_d' },
+          typescript = { 'eslint_d' },
+        }
+
+        return defaults[filetype]
+      end
+
       lint.linters_by_ft = {
-        markdown = { 'markdownlint' },
-        javascript = { 'eslint_d' },
-        typescript = { 'eslint_d' },
+        markdown = get_linters 'markdown',
+        javascript = get_linters 'javascript',
+        typescript = get_linters 'typescript',
       }
 
       -- To allow other plugins to add linters to require('lint').linters_by_ft,
